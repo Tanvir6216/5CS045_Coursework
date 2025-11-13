@@ -24,8 +24,6 @@
       width: 50%;
       z-index: 1000;
       border-radius: 5px;
-      max-height: 300px;
-      overflow-y: auto;
     }
     .list-group-item:hover {
       background: #f1f1f1;
@@ -97,36 +95,30 @@
   <!-- jQuery for AJAX -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
-    // Function to fetch books
-    function loadBooks(query = '') {
-      $.post("search-books.php", { search: query }, function (data) {
+    // ✅ Show all books when clicking in the search box
+    $(document).on("focus", "#search", function () {
+      $.post("search-books.php", { search: "" }, function (data) {
         $("#result").html(data);
       });
-    }
+    });
 
-    // Run AJAX when typing in the search box
+    // ✅ Hide results when clicking outside the search box
+    $(document).on("click", function (e) {
+      if (!$(e.target).closest("#search, #result").length) {
+        $("#result").html("");
+      }
+    });
+
+    // ✅ Run AJAX search dynamically as user types (filters by multiple criteria)
     $(document).on("keyup", "#search", function () {
       let text = $(this).val().trim();
 
-      if (text.length === 0) {
-        $("#result").html("");
-        return;
-      }
-
-      loadBooks(text);
+      $.post("search-books.php", { search: text }, function (data) {
+        $("#result").html(data);
+      });
     });
 
-    // ✅ NEW: Show all books automatically when clicking (focus) on search box
-    $(document).on("focus", "#search", function () {
-      loadBooks(''); // shows all books only when search box is clicked
-    });
-
-    // ✅ NEW: Hide the result list when user clicks away (blur)
-    $(document).on("blur", "#search", function () {
-      setTimeout(() => { $("#result").html(""); }, 200); // small delay for clicks
-    });
-
-    // When clicking on a suggestion, fill it into the search box
+    // ✅ When clicking on a suggestion, fill it into the search box
     $(document).on("click", ".suggestion-item", function () {
       $("#search").val($(this).data("title"));
       $("#result").html("");
