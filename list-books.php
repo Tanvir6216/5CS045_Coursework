@@ -5,25 +5,23 @@
   <title>List of ALL my Books!!!</title>
 
   <?php
-  // Connect to database
   include("db.php");
-
-  // Run SQL query to get all books
   $sql = "SELECT * FROM books ORDER BY Published_date DESC";
   $results = mysqli_query($mysqli, $sql);
   ?>
-  
-  <?php // Bootstrap styling ?>
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  
+
   <style>
-	/* Styles for search dropdown */
     #result {
       position: absolute;
       background: white;
       width: 50%;
       z-index: 1000;
       border-radius: 5px;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
     }
     .list-group-item:hover {
       background: #f1f1f1;
@@ -35,23 +33,17 @@
 <body class="container py-4">
   <h1>My Books List</h1>
 
-  <!-- Search Bar -->
   <div class="position-relative" style="max-width: 50%;">
-    <?php // Search box triggers AJAX ?>
     <input id="search" class="form-control" type="text" placeholder="Search by title, author, or genre..." autocomplete="off">
-
-    <?php // Search results appear here ?>
     <div id="result"></div>
   </div>
 
   <br>
 
-  <?php // Button to add a new book ?>
   <a href="add-books.php" class="btn btn-primary">+ Add New Book</a>
 
   <br><br>
 
-  <?php // Table showing all books ?>
   <table class="table table-bordered table-striped">
     <thead class="table-dark">
       <tr>
@@ -65,7 +57,6 @@
         <th>Actions</th>
       </tr>
     </thead>
-
     <tbody>
       <?php
       if ($results && mysqli_num_rows($results) > 0) {
@@ -92,33 +83,31 @@
     </tbody>
   </table>
 
-  <!-- jQuery for AJAX -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
-    // ✅ Show all books when clicking in the search box
+    // Show all when focusing on search
     $(document).on("focus", "#search", function () {
       $.post("search-books.php", { search: "" }, function (data) {
         $("#result").html(data);
       });
     });
 
-    // ✅ Hide results when clicking outside the search box
+    // Hide when clicking outside
     $(document).on("click", function (e) {
       if (!$(e.target).closest("#search, #result").length) {
         $("#result").html("");
       }
     });
 
-    // ✅ Run AJAX search dynamically as user types (filters by multiple criteria)
+    // Filter as user types
     $(document).on("keyup", "#search", function () {
       let text = $(this).val().trim();
-
       $.post("search-books.php", { search: text }, function (data) {
         $("#result").html(data);
       });
     });
 
-    // ✅ When clicking on a suggestion, fill it into the search box
+    // Fill search box when selecting a result
     $(document).on("click", ".suggestion-item", function () {
       $("#search").val($(this).data("title"));
       $("#result").html("");
