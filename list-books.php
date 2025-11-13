@@ -24,8 +24,6 @@
       width: 50%;
       z-index: 1000;
       border-radius: 5px;
-      max-height: 300px;
-      overflow-y: auto;
     }
     .list-group-item:hover {
       background: #f1f1f1;
@@ -68,7 +66,7 @@
       </tr>
     </thead>
 
-    <tbody id="book-table-body">
+    <tbody>
       <?php
       if ($results && mysqli_num_rows($results) > 0) {
         while ($row = mysqli_fetch_assoc($results)) {
@@ -97,22 +95,28 @@
   <!-- jQuery for AJAX -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
-    // Load all books on page load or when search box is empty
+    // Function to fetch books
     function loadBooks(query = '') {
       $.post("search-books.php", { search: query }, function (data) {
         $("#result").html(data);
       });
     }
 
-    // Load all books initially
-    $(document).ready(function() {
-      loadBooks(''); // ← this shows all books automatically
-    });
-
     // Run AJAX when typing in the search box
     $(document).on("keyup", "#search", function () {
       let text = $(this).val().trim();
+
+      if (text.length === 0) {
+        $("#result").html("");
+        return;
+      }
+
       loadBooks(text);
+    });
+
+    // ✅ NEW: Show all books automatically when clicking (focus) on search box
+    $(document).on("focus", "#search", function () {
+      loadBooks(''); // shows all books only when search box is clicked
     });
 
     // When clicking on a suggestion, fill it into the search box
