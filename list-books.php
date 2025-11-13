@@ -44,7 +44,7 @@
 
   <br><br>
 
-  <table class="table table-bordered table-striped">
+  <table class="table table-bordered table-striped" id="bookTable">
     <thead class="table-dark">
       <tr>
         <th>ISBN</th>
@@ -57,7 +57,7 @@
         <th>Actions</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody id="bookData">
       <?php
       if ($results && mysqli_num_rows($results) > 0) {
         while ($row = mysqli_fetch_assoc($results)) {
@@ -84,34 +84,48 @@
   </table>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
   <script>
-    // Show all when focusing on search
+    // Show suggestions when focusing
     $(document).on("focus", "#search", function () {
       $.post("search-books.php", { search: "" }, function (data) {
         $("#result").html(data);
       });
     });
 
-    // Hide when clicking outside
+    // Hide dropdown on outside click
     $(document).on("click", function (e) {
       if (!$(e.target).closest("#search, #result").length) {
         $("#result").html("");
       }
     });
 
-    // Filter as user types
+    // LIVE FILTER MAIN TABLE + DROPDOWN
     $(document).on("keyup", "#search", function () {
       let text = $(this).val().trim();
+
+      // Update dropdown suggestions
       $.post("search-books.php", { search: text }, function (data) {
         $("#result").html(data);
       });
+
+      // Update ONLY main list
+      $.post("filter-books.php", { search: text }, function (tableRows) {
+        $("#bookData").html(tableRows);   // <--- FIX #1
+      });
     });
 
-    // Fill search box when selecting a result
+    // Fill search when clicking dropdown item
     $(document).on("click", ".suggestion-item", function () {
       $("#search").val($(this).data("title"));
       $("#result").html("");
+
+      // Update main table when selecting a suggestion
+      $.post("filter-books.php", { search: $(this).data("title") }, function (tableRows) {
+        $("#bookData").html(tableRows);  // <--- FIX #2
+      });
     });
   </script>
+
 </body>
 </html>
