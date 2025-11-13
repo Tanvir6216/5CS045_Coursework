@@ -24,6 +24,8 @@
       width: 50%;
       z-index: 1000;
       border-radius: 5px;
+      max-height: 300px;
+      overflow-y: auto;
     }
     .list-group-item:hover {
       background: #f1f1f1;
@@ -117,6 +119,11 @@
     // ✅ NEW: Show all books automatically when clicking (focus) on search box
     $(document).on("focus", "#search", function () {
       loadBooks(''); // shows all books only when search box is clicked
+    });
+
+    // ✅ NEW: Hide the result list when user clicks away (blur)
+    $(document).on("blur", "#search", function () {
+      setTimeout(() => { $("#result").html(""); }, 200); // small delay for clicks
     });
 
     // When clicking on a suggestion, fill it into the search box
