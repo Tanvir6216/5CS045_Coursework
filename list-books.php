@@ -82,50 +82,77 @@
       ?>
     </tbody>
   </table>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+let focused = false;
 
-  <script>
-    // Show suggestions when focusing
-    $(document).on("focus", "#search", function () {
-      $.post("search-books.php", { search: "" }, function (data) {
+// When focusing → show ALL books + suggestions
+$(document).on("focus", "#search", function () {
+    focused = true;
+
+    // Show full dropdown list
+    $.post("search-books.php", { search: "" }, function (data) {
         $("#result").html(data);
-      });
     });
 
-    // Hide dropdown on outside click
-    $(document).on("click", function (e) {
-      if (!$(e.target).closest("#search, #result").length) {
+    // Show full table list
+    $.post("filter-books.php", { search: "" }, function (tableRows) {
+        $("#bookData").html(tableRows);
+    });
+});
+
+// Hide dropdown on outside click
+$(document).on("click", function (e) {
+    if (!$(e.target).closest("#search, #result").length) {
         $("#result").html("");
-      }
-    });
+    }
+});
 
-    // LIVE FILTER MAIN TABLE + DROPDOWN
-    $(document).on("keyup", "#search", function () {
-      let text = $(this).val().trim();
+// LIVE FILTERING
+$(document).on("keyup", "#search", function () {
+    let text = $(this).val().trim();
 
-      // Update dropdown suggestions
-      $.post("search-books.php", { search: text }, function (data) {
+    // 1️⃣ Search empty + not focused → hide everything
+    if (text === "" && !focused) {
+        $("#bookData").html("");  // hide full table
+        $("#result").html("");    // hide suggestions
+        return;
+    }
+
+    // 2️⃣ Search empty + focused → show ALL books again
+    if (text === "" && focused) {
+        $.post("search-books.php", { search: "" }, function (data) {
+            $("#result").html(data);
+        });
+
+        $.post("filter-books.php", { search: "" }, function (tableRows) {
+            $("#bookData").html(tableRows);
+        });
+
+        return;
+    }
+
+    // 3️⃣ When typing → filter suggestions
+    $.post("search-books.php", { search: text }, function (data) {
         $("#result").html(data);
-      });
-
-      // Update ONLY main list
-      $.post("filter-books.php", { search: text }, function (tableRows) {
-        $("#bookData").html(tableRows);   // <--- FIX #1
-      });
     });
 
-    // Fill search when clicking dropdown item
-    $(document).on("click", ".suggestion-item", function () {
-      $("#search").val($(this).data("title"));
-      $("#result").html("");
-
-      // Update main table when selecting a suggestion
-      $.post("filter-books.php", { search: $(this).data("title") }, function (tableRows) {
-        $("#bookData").html(tableRows);  // <--- FIX #2
-      });
+    // 4️⃣ Filter MAIN book table
+    $.post("filter-books.php", { search: text }, function (tableRows) {
+        $("#bookData").html(tableRows);
     });
-  </script>
+});
 
-</body>
-</html>
+// Dropdown click → fill input + filter table
+$(document).on("click", ".suggestion-item", function () {
+    const text = $(this).data("title");
+
+    $("#search").val(text);
+    $("#result").html("");
+
+    $.post("filter-books.php", { search: text }, function (tableRows) {
+        $("#bookData").html(tableRows);
+    });
+});
+</script>
